@@ -1,362 +1,496 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>EU AI Act . Flashcards (AKN)</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#005AA9">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { -webkit-tap-highlight-color: transparent; }
-  </style>
-</head>
-<body class="min-h-screen bg-white text-gray-900">
-  <div id="root"></div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AKN KI-Workshop - Kurzbefragung</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --akn-blau: #003064;
+            --akn-rot: #D4004B;
+            --akn-blau-light: #004a96;
+            --weiss: #FFFFFF;
+            --grau-hell: #F5F7FA;
+            --grau: #6B7280;
+        }
 
-  <!-- React 18 + ReactDOM UMD -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <!-- Babel for JSX transform in-browser -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  <script type="text/babel">
-    const { useState, useMemo } = React;
+        body {
+            font-family: 'DM Sans', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--akn-blau) 0%, #001a38 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-    const DEFAULT_THEME = {
-      primary: "#005AA9",
-      onPrimary: "#FFFFFF",
-      background: "#FFFFFF",
-      surface: "#F5F7FA",
-      text: "#0B1220",
-      subtleText: "#5B6470",
-      border: "#E5E7EB",
-    };
+        .container {
+            background: var(--weiss);
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+            max-width: 540px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+        }
 
-    const DEFAULT_CARDS = [
-      { q: "Was ist das Hauptziel des EU AI Act?",
-        options: ["Steuern auf KI-Produkte zu erhöhen","Einheitliche Regeln für sichere, vertrauenswürdige KI festzulegen","Nur Open-Source-KI zu fördern","Alle KI-Anwendungen zu verbieten"],
-        a: 1, why: "Der EU AI Act legt harmonisierte Regeln fest, um Sicherheit und Grundrechte zu schützen." },
-      { q: "Auf welche Systeme zielt der EU AI Act in erster Linie ab?",
-        options: ["Nur Hardware-Roboter","Software-Apps ohne ML","KI-Systeme (inkl. ML, statistische Ansätze, logikbasierte Systeme)","Nur Chatbots"],
-        a: 2, why: "Der Anwendungsbereich umfasst diverse KI-Ansätze, nicht nur Chatbots." },
-      { q: "Welche Praxis ist nach Artikel 5 grundsätzlich verboten?",
-        options: ["Personalisierte Werbung","Sozialbewertung (Social Scoring) von Personen durch Behörden","Fehlerhafte Produktempfehlungen","A/B-Tests"],
-        a: 1, why: "Social Scoring durch Behörden gehört zu den verbotenen Praktiken (Art. 5)." },
-      { q: "Welche Risikokategorien nutzt der EU AI Act?",
-        options: ["Kein Risiko. mittel. hoch. sehr hoch","Verboten. Hochrisiko. begrenztes Risiko (Transparenz). minimales Risiko","Gering. mittel. hoch","Wirtschaftlich. technisch. rechtlich"],
-        a: 1, why: "Diese vier Stufen strukturieren Verbote und Pflichten." },
-      { q: "Wer ist im Gesetz ‚Provider‘?",
-        options: ["Nur der Endnutzer","Die Stelle, die ein KI-System entwickelt oder in Verkehr bringt","Jede Aufsichtsbehörde","Nur Cloud-Anbieter"],
-        a: 1, why: "Provider ist der Entwickler/Anbieter, der das System bereitstellt." },
-      { q: "Welche Pflicht gehört zu Hochrisiko-KI-Systemen?",
-        options: ["Keine Dokumentation nötig","Ausschließlich Offline-Betrieb","Risikomanagement. Daten-/Modell-Governance. technische Doku. Logging. menschliche Aufsicht","Quellcode-Offenlegung für alle"],
-        a: 2, why: "Dies sind Kernpflichten für Hochrisiko-Systeme." },
-      { q: "Was gilt für KI-generierte Inhalte, die täuschen könnten (Deepfakes)?",
-        options: ["Keine Anforderungen","Müssen als KI-erzeugt gekennzeichnet werden","Dürfen nicht veröffentlicht werden","Müssen von Behörden vorab genehmigt werden"],
-        a: 1, why: "Transparenzpflichten verlangen Kennzeichnung bestimmter KI-Inhalte." },
-      { q: "Wofür steht das CE-Kennzeichen bei Hochrisiko-KI?",
-        options: ["Marketing-Qualität","Einhaltung der anwendbaren Anforderungen (Konformität)","Open-Source-Lizenz","Exportfreigabe"],
-        a: 1, why: "CE signalisiert Konformität mit relevanten Vorschriften." },
-      { q: "Wer koordiniert auf EU-Ebene u. a. GPAI-Themen?",
-        options: ["Das Europäische Parlament","Das AI Office bei der EU-Kommission","Der EuGH","Die Europäische Zentralbank"],
-        a: 1, why: "Das AI Office bündelt Koordination und Leitlinien für GPAI." },
-      { q: "Welche Aussage zu General-Purpose-AI (GPAI) trifft zu?",
-        options: ["Sie sind vom EU AI Act ausgenommen","Sie unterliegen spezifischen Leitlinien/Verpflichtungen","Nur nationale Regeln gelten","Nur Hardware-Hersteller betroffen"],
-        a: 1, why: "Für GPAI gibt es separate Leitlinien und Pflichten." },
-      { q: "Ein Beispiel für ‚begrenztes Risiko‘ ist…",
-        options: ["KI-System zur Spielzeugzulassung","Emotionserkennung am Arbeitsplatz","Ein allgemeiner Chatbot mit Offenlegung, dass er KI ist","Prädiktive Polizeiarbeit"],
-        a: 2, why: "Bei Chatbots greifen Transparenzpflichten (Begrenztes Risiko)." },
-      { q: "Ein Beispiel für ‚Hochrisiko‘ ist typischerweise…",
-        options: ["KI-gestützte HR-Auswahlverfahren für Bewerbende","Musik-Empfehlung in Streaming-Apps","Witz-Generator","Rechtschreibkorrektur"],
-        a: 0, why: "Personal-Auswahlverfahren zählen typischerweise zu Hochrisiko." },
-      { q: "Was ist NICHT Ziel des Verbots ‚ausnutzende Manipulation‘?",
-        options: ["Schutz vulnerabler Personen","Vermeidung erheblicher Schäden","Förderung von Social Scoring","Verbot manipulativer Techniken"],
-        a: 2, why: "Social Scoring ist selbst verboten und nicht Ziel des Manipulationsverbots." },
-      { q: "Ab wann greifen EU-Durchsetzungsbefugnisse für GPAI-Provider?",
-        options: ["Sofort seit 2024","Ab 2. August 2026","Ab 2. August 2030","Nie"],
-        a: 1, why: "Leitlinien nennen den 2. August 2026." },
-      { q: "Bis wann müssen GPAI-Modelle vor 2. Aug. 2025 die Vorgaben erfüllen?",
-        options: ["2025","2026","2027","2029"],
-        a: 2, why: "Frist: bis 2. August 2027." },
-    ];
-
-    function shuffle(arr) {
-      const copy = [...arr];
-      for (let i = copy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]];
-      }
-      return copy;
-    }
-
-    function App() {
-      const [cards, setCards] = useState(DEFAULT_CARDS);
-      const [order, setOrder] = useState(Array.from({ length: DEFAULT_CARDS.length }, (_, i) => i));
-      const [idx, setIdx] = useState(0);
-      const [answers, setAnswers] = useState({});
-      const [revealed, setRevealed] = useState({});
-      const [finished, setFinished] = useState(false);
-      const [theme, setTheme] = useState(DEFAULT_THEME);
-      const [logoUrl, setLogoUrl] = useState("");
-      const [brandingOpen, setBrandingOpen] = useState(false);
-
-      const total = cards.length;
-      const current = cards[order[idx]];
-
-      const progress = useMemo(() => {
-        const answered = Object.keys(answers).length;
-        return Math.round((answered / total) * 100);
-      }, [answers, total]);
-
-      const score = useMemo(() => {
-        return Object.entries(answers).reduce((acc, [key, val]) => {
-          const k = Number(key);
-          const card = cards[order[k]];
-          if (val !== null && val === card.a) return acc + 1;
-          return acc;
-        }, 0);
-      }, [answers, cards, order]);
-
-      function pickOption(optIdx) {
-        if (finished) return;
-        setAnswers(prev => ({ ...prev, [idx]: optIdx }));
-      }
-
-      function reveal() {
-        setRevealed(prev => ({ ...prev, [idx]: true }));
-      }
-
-      function next() {
-        if (idx < total - 1) setIdx(idx + 1);
-        else setFinished(true);
-      }
-
-      function prev() {
-        if (idx > 0) setIdx(idx - 1);
-      }
-
-      function restart(shuffleCards = false) {
-        const newOrder = shuffleCards ? shuffle(order) : Array.from({ length: total }, (_, i) => i);
-        setOrder(newOrder);
-        setIdx(0);
-        setAnswers({});
-        setRevealed({});
-        setFinished(false);
-      }
-
-      function exportJSON() {
-        const payload = { cards };
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "eu-ai-act-quiz.json";
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-
-      function importJSON(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const data = JSON.parse(String(e.target?.result));
-            if (Array.isArray(data)) {
-              setCards(data);
-            } else if (Array.isArray(data.cards)) {
-              setCards(data.cards);
-            } else {
-              alert("Ungültiges Format. Erwartet wird ein Array oder { cards: [...] }.");
-              return;
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
             }
-            restart(false);
-          } catch (err) {
-            alert("JSON konnte nicht gelesen werden.");
-          }
-        };
-        reader.readAsText(file);
-      }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-      function onLogoFile(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => setLogoUrl(String(e.target?.result || ""));
-        reader.readAsDataURL(file);
-      }
+        .header {
+            background: var(--akn-blau);
+            padding: 32px 28px;
+            position: relative;
+            overflow: hidden;
+        }
 
-      const selected = (answers[idx] ?? null);
-      const isCorrect = selected !== null && selected === current.a;
-      const isRevealed = !!revealed[idx];
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: var(--akn-rot);
+            opacity: 0.15;
+            border-radius: 50%;
+        }
 
-      return (
-        <div className="min-h-screen" style={{ background: theme.background, color: theme.text }}>
-          {/* Brand Bar */}
-          <div className="w-full" style={{ background: theme.primary, color: theme.onPrimary }}>
-            <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                {logoUrl ? (
-                  <img src={logoUrl} alt="Logo" className="h-8 w-auto rounded-sm bg-white/0" />
-                ) : (
-                  <div className="flex h-8 w-8 items-center justify-center rounded bg-white/10 text-xs font-bold" title="Logo-Platzhalter">AKN</div>
-                )}
-                <div>
-                  <div className="text-sm opacity-90">Quiz</div>
-                  <h1 className="text-base font-semibold">EU AI Act . Flashcards</h1>
-                </div>
-              </div>
-              <button
-                onClick={() => setBrandingOpen(v => !v)}
-                className="rounded-lg px-3 py-2 text-sm"
-                style={{ background: "rgba(255,255,255,0.15)", color: theme.onPrimary, border: "1px solid rgba(255,255,255,0.35)" }}
-              >
-                {brandingOpen ? "Branding schließen" : "Branding öffnen"}
-              </button>
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--akn-rot);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .logo-text {
+            font-family: 'Space Grotesk', Arial Black, sans-serif;
+            font-weight: 700;
+            font-size: 28px;
+            color: var(--weiss);
+            letter-spacing: 2px;
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--akn-rot);
+            border-radius: 50%;
+        }
+
+        .header h1 {
+            font-family: 'Space Grotesk', Arial Black, sans-serif;
+            font-size: 22px;
+            color: var(--weiss);
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .form-content {
+            padding: 32px 28px;
+        }
+
+        .question {
+            margin-bottom: 28px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .question:nth-child(1) { animation-delay: 0.1s; }
+        .question:nth-child(2) { animation-delay: 0.2s; }
+        .question:nth-child(3) { animation-delay: 0.3s; }
+        .question:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .question-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--akn-rot);
+            color: var(--weiss);
+            border-radius: 50%;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .question label.question-text {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--akn-blau);
+            margin-bottom: 14px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            position: relative;
+        }
+
+        .option input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .option label {
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+            background: var(--grau-hell);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 15px;
+            color: #374151;
+        }
+
+        .option label:hover {
+            border-color: var(--akn-blau);
+            background: #EBF4FF;
+        }
+
+        .option input:checked + label {
+            border-color: var(--akn-blau);
+            background: var(--akn-blau);
+            color: var(--weiss);
+        }
+
+        .option label::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid #CBD5E1;
+            border-radius: 50%;
+            margin-right: 12px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .option input:checked + label::before {
+            border-color: var(--weiss);
+            background: var(--akn-rot);
+            box-shadow: inset 0 0 0 4px var(--akn-blau);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px 24px;
+            background: var(--akn-rot);
+            color: var(--weiss);
+            border: none;
+            border-radius: 12px;
+            font-family: 'Space Grotesk', Arial Black, sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            background: #B8003F;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 0, 75, 0.35);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 28px 28px;
+            border-top: 1px solid #E5E7EB;
+        }
+
+        .footer p {
+            font-size: 13px;
+            color: var(--grau);
+        }
+
+        .footer .claim {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: var(--grau-hell);
+            border: 1px solid var(--akn-rot);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--akn-blau);
+            font-weight: 500;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 60px 28px;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--akn-blau) 0%, var(--akn-blau-light) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            color: var(--weiss);
+        }
+
+        .success-message h2 {
+            font-family: 'Space Grotesk', Arial Black, sans-serif;
+            font-size: 24px;
+            color: var(--akn-blau);
+            margin-bottom: 12px;
+        }
+
+        .success-message p {
+            color: var(--grau);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .form-hidden {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                border-radius: 20px;
+            }
+            
+            .header {
+                padding: 24px 20px;
+            }
+            
+            .header h1 {
+                font-size: 19px;
+            }
+            
+            .form-content {
+                padding: 24px 20px;
+            }
+            
+            .logo-text {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <span class="logo-text">AKN</span>
+                <span class="logo-dot"></span>
             </div>
-          </div>
-
-          {/* Branding Panel */}
-          {brandingOpen && (
-            <div className="mx-auto max-w-5xl px-4 py-4">
-              <div className="rounded-2xl p-4" style={{ background: theme.surface, border: `1px solid ${theme.border}` }}>
-                <div className="mb-3 text-sm font-semibold" style={{ color: theme.text }}>Branding</div>
-                <div className="flex flex-col gap-4 sm:flex-row">
-                  <div className="flex-1">
-                    <label className="block text-xs" style={{ color: theme.subtleText }}>Primärfarbe (Hex)</label>
-                    <div className="mt-1 flex items-center gap-2">
-                      <input type="color" value={theme.primary} onChange={(e) => setTheme({ ...theme, primary: e.target.value })} className="h-9 w-12 cursor-pointer rounded border"/>
-                      <input type="text" value={theme.primary} onChange={(e) => setTheme({ ...theme, primary: e.target.value })} className="w-32 rounded border px-2 py-1 text-sm"/>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-xs" style={{ color: theme.subtleText }}>Logo-URL</label>
-                    <input type="text" placeholder="https://…/logo.png" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} className="mt-1 w-full rounded border px-2 py-1 text-sm"/>
-                    <label className="mt-2 inline-block cursor-pointer rounded border px-2 py-1 text-xs" style={{ borderColor: theme.border }}>
-                      Datei hochladen
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onLogoFile(f); }}/>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="mx-auto max-w-3xl px-4 py-8">
-            {/* Header */}
-            <header className="mb-6 flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-bold" style={{ color: theme.text }}>EU AI Act . Flashcards (Multiple Choice)</h2>
-                <p className="text-sm" style={{ color: theme.subtleText }}>Einfaches Quiz. 15 Fragen. Wähle die richtige Antwort. Zeige die Begründung an. Exportiere/Importiere als JSON.</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => restart(false)} className="rounded-xl border px-3 py-2 text-sm shadow-sm hover:opacity-90" style={{ borderColor: theme.border, background: theme.background, color: theme.text }}>Zurücksetzen</button>
-                <button onClick={() => restart(true)} className="rounded-xl border px-3 py-2 text-sm shadow-sm hover:opacity-90" style={{ borderColor: theme.primary, color: theme.primary, background: theme.background }}>Mischen</button>
-                <button onClick={exportJSON} className="rounded-xl border px-3 py-2 text-sm shadow-sm hover:opacity-90" style={{ borderColor: theme.primary, background: theme.primary, color: theme.onPrimary }}>Export</button>
-                <label className="cursor-pointer rounded-xl border px-3 py-2 text-sm shadow-sm hover:opacity-90" style={{ borderColor: theme.border, background: theme.background, color: theme.text }}>
-                  Import
-                  <input type="file" accept=".json,application/json" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) importJSON(f); }}/>
-                </label>
-              </div>
-            </header>
-
-            {/* Progress */}
-            <div className="mb-6">
-              <div className="mb-1 flex items-center justify-between text-sm" style={{ color: theme.text }}>
-                <span>Fortschritt</span>
-                <span>{Object.keys(answers).length}/{total} beantwortet . {progress}%</span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full" style={{ background: theme.border }}>
-                <div className="h-2" style={{ width: `${progress}%`, background: theme.primary }}/>
-              </div>
-            </div>
-
-            {/* Karte */}
-            { !finished ? (
-              <div className="rounded-2xl p-5 shadow-sm" style={{ background: theme.background, border: `1px solid ${theme.border}` }}>
-                <div className="mb-4 text-sm" style={{ color: theme.subtleText }}>Frage {idx + 1} von {total}</div>
-                <h3 className="mb-4 text-lg font-semibold leading-snug" style={{ color: theme.text }}>{current.q}</h3>
-
-                <div className="space-y-2">
-                  {current.options.map((opt, i) => {
-                    const isSelected = selected === i;
-                    const showCorrect = (revealed[idx] ?? false) && i === current.a;
-                    const showWrong = (revealed[idx] ?? false) && isSelected && i !== current.a;
-                    return (
-                      <button key={i} onClick={() => pickOption(i)} className="w-full rounded-xl border px-4 py-3 text-left transition"
-                        style={{borderColor: isSelected ? theme.primary : theme.border, background: showCorrect ? "#ECFDF5" : showWrong ? "#FEF2F2" : theme.surface}}>
-                        <div className="flex items-start gap-3">
-                          <div className="mt-1 text-xs font-mono" style={{ color: theme.subtleText }}>{String.fromCharCode(65 + i)})</div>
-                          <div style={{ color: theme.text }}>{opt}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Aktionen */}
-                <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                  <div className="text-sm">
-                    {selected === null ? (
-                      <span style={{ color: theme.subtleText }}>Bitte wähle eine Option.</span>
-                    ) : (revealed[idx] ?? false) ? (
-                      <span style={{ color: (selected === current.a) ? "#16A34A" : "#DC2626" }}>
-                        {(selected === current.a) ? "Richtig" : "Falsch"}
-                      </span>
-                    ) : (
-                      <span style={{ color: theme.text }}>Auswahl: {selected !== null ? String.fromCharCode(65 + selected) : "–"}</span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => idx > 0 && (setIdx(idx - 1))} disabled={idx === 0} className="rounded-xl border px-3 py-2 text-sm shadow-sm disabled:opacity-40" style={{ borderColor: theme.border, background: theme.background, color: theme.text }}>Zurück</button>
-                    {!(revealed[idx] ?? false) ? (
-                      <button onClick={() => setRevealed(prev => ({ ...prev, [idx]: true }))} disabled={selected === null} className="rounded-xl px-3 py-2 text-sm text-white shadow-sm disabled:opacity-40" style={{ background: theme.primary }}>Lösung zeigen</button>
-                    ) : (
-                      <button onClick={() => idx < total - 1 ? setIdx(idx + 1) : setFinished(true)} className="rounded-xl px-3 py-2 text-sm text-white shadow-sm" style={{ background: theme.primary }}>Nächste Frage</button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Begründung */}
-                {(revealed[idx] ?? false) && (
-                  <div className="mt-4 rounded-xl p-4 text-sm" style={{ background: theme.surface, color: theme.text, border: `1px solid ${theme.border}` }}>
-                    <div className="mb-1 font-semibold">Begründung</div>
-                    <p>{current.why}</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="rounded-2xl p-6 shadow-sm" style={{ background: theme.background, border: `1px solid ${theme.border}` }}>
-                <h3 className="mb-3 text-xl font-bold" style={{ color: theme.text }}>Fertig!</h3>
-                <p className="mb-4" style={{ color: theme.text }}>Du hast <span className="font-semibold">{Object.entries(answers).reduce((acc,[k,v]) => acc + ((cards[order[Number(k)]].a === v) ? 1 : 0), 0)}</span> von {total} richtig beantwortet.</p>
-                <div className="mb-4 h-2 w-full overflow-hidden rounded-full" style={{ background: theme.border }}>
-                  <div className="h-2" style={{ width: `${Math.round((Object.entries(answers).reduce((acc,[k,v]) => acc + ((cards[order[Number(k)]].a === v) ? 1 : 0), 0) / total) * 100)}%`, background: theme.primary }} />
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => restart(false)} className="rounded-xl border px-3 py-2 text-sm shadow-sm hover:opacity-90" style={{ borderColor: theme.border, background: theme.background, color: theme.text }}>Nochmal spielen</button>
-                  <button onClick={() => restart(true)} className="rounded-xl border px-3 py-2 text-sm shadow-sm hover:opacity-90" style={{ borderColor: theme.primary, color: theme.primary, background: theme.background }}>Mit Mischen neu starten</button>
-                </div>
-              </div>
-            )}
-
-            <footer className="mt-8 text-center text-xs" style={{ color: theme.subtleText }}>
-              <p>Tipp: Über „Export“ kannst du das Set als JSON speichern und später über „Import“ wieder laden.</p>
-            </footer>
-          </div>
+            <h1>Kurzbefragung vor dem KI-Workshop</h1>
+            <p>Hilf uns, den Workshop optimal auf dich abzustimmen</p>
         </div>
-      );
-    }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+        <form id="quizForm" action="https://formspree.io/f/DEINE_FORM_ID" method="POST">
+            <div class="form-content">
+                
+                <div class="question">
+                    <span class="question-number">1</span>
+                    <label class="question-text">Wie häufig haben Sie diese Woche ein Large Language Model genutzt?</label>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" id="q1a" name="llm_nutzung" value="Gar nicht" required>
+                            <label for="q1a">Gar nicht</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="q1b" name="llm_nutzung" value="1-4 Mal">
+                            <label for="q1b">1-4 Mal</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="q1c" name="llm_nutzung" value="Täglich">
+                            <label for="q1c">Täglich</label>
+                        </div>
+                    </div>
+                </div>
 
-    // PWA: Service Worker registrieren
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js');
-      });
-    }
-  </script>
+                <div class="question">
+                    <span class="question-number">2</span>
+                    <label class="question-text">Wie nutzen Sie KI?</label>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" id="q2a" name="ki_nutzung" value="Beruflich" required>
+                            <label for="q2a">Beruflich</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="q2b" name="ki_nutzung" value="Privat">
+                            <label for="q2b">Privat</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="q2c" name="ki_nutzung" value="Beides">
+                            <label for="q2c">Beides</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <span class="question-number">3</span>
+                    <label class="question-text">Haben Sie schon an einer KI-Schulung teilgenommen?</label>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" id="q3a" name="schulung" value="Nein" required>
+                            <label for="q3a">Nein</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="q3b" name="schulung" value="An einer">
+                            <label for="q3b">An einer</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="q3c" name="schulung" value="An mehreren">
+                            <label for="q3c">An mehreren</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <span class="question-number">4</span>
+                    <label class="question-text">Was sind Ihre Erwartungen an den heutigen Tag?</label>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" id="q4a" name="erwartungen" value="Neugierig" required>
+                            <label for="q4a">Neugierig</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="q4b" name="erwartungen" value="Ohne Erwartung">
+                            <label for="q4b">Ohne Erwartung</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" id="q4c" name="erwartungen" value="Etwas lernen">
+                            <label for="q4c">Etwas lernen</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">Absenden</button>
+            </div>
+        </form>
+
+        <div class="success-message" id="successMessage">
+            <div class="success-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <h2>Vielen Dank!</h2>
+            <p>Deine Antworten wurden übermittelt.<br>Wir freuen uns auf einen spannenden Workshop mit dir.</p>
+        </div>
+
+        <div class="footer" id="footer">
+            <p>AKN Eisenbahn GmbH</p>
+            <span class="claim">Meine tägliche Verbindung</span>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('quizForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const successMessage = document.getElementById('successMessage');
+        const footer = document.getElementById('footer');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Wird gesendet...';
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    form.classList.add('form-hidden');
+                    successMessage.classList.add('show');
+                    footer.style.borderTop = 'none';
+                } else {
+                    throw new Error('Fehler beim Senden');
+                }
+            } catch (error) {
+                alert('Es gab einen Fehler. Bitte versuche es erneut.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Absenden';
+            }
+        });
+    </script>
 </body>
 </html>
